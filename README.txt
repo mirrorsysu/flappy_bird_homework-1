@@ -1,13 +1,14 @@
-¡¾°²×°ÓëÆô¶¯¡¿
-0.°²×°python2.7.14¡¢cocos2d¡£
-1.Í¨¹ýFlappyBirdServer/start_server.batÆô¶¯·þÎñ¶Ë¡£
-2.Í¨¹ýFlappyBirdClient/start_client.batÆô¶¯¿Í»§¶Ë¡£
+ã€å®‰è£…ä¸Žå¯åŠ¨ã€‘
+0.å®‰è£…python2.7.14ã€cocos2dã€‚
+1.é€šè¿‡FlappyBirdServer/start_server.batå¯åŠ¨æœåŠ¡ç«¯ã€‚
+2.é€šè¿‡FlappyBirdClient/start_client.batå¯åŠ¨å®¢æˆ·ç«¯ã€‚
 
-¡¾¹¦ÄÜËµÃ÷¡¿
-1.µã»÷¡°notice¡±°´Å¥ÏÔÊ¾·þÎñÆ÷¹«¸æ£¬¸Ã¹¦ÄÜÓÃÓÚÑÝÊ¾·þÎñÆ÷¿Í»§¶ËÍ¨Ñ¶¹¦ÄÜ¡£
-2.µã»÷¿Í»§¶Ë½çÃæ¿Õ°×´¦¿ÉÒÔ´¥·¢Ð¡ÄñÌøÔ¾£¬±Ü¿ªÀ¸¸Ë¡£
+ã€åŠŸèƒ½è¯´æ˜Žã€‘
+1.ç‚¹å‡»â€œnoticeâ€æŒ‰é’®æ˜¾ç¤ºæœåŠ¡å™¨å…¬å‘Šï¼Œè¯¥åŠŸèƒ½ç”¨äºŽæ¼”ç¤ºæœåŠ¡å™¨å®¢æˆ·ç«¯é€šè®¯åŠŸèƒ½ã€‚
+2.ç‚¹å‡»å®¢æˆ·ç«¯ç•Œé¢ç©ºç™½å¤„å¯ä»¥è§¦å‘å°é¸Ÿè·³è·ƒï¼Œé¿å¼€æ æ†ã€‚
 
-¡¾´úÂëËµÃ÷¡¿
-1.[¿Í»§¶Ë]Âß¼­´úÂëÔÚflappy_bird\libÄ¿Â¼ÏÂ¡£
-2.[¿Í»§¶Ë]×ÊÔ´ÎÄ¼þÔÚflappy_bird\dataÄ¿Â¼ÏÂ¡£
-3.[·þÎñ¶Ë]´úÂëÔÚflappy_bird\FlappyBirdServerÄ¿Â¼ÏÂ¡£
+ã€ä»£ç è¯´æ˜Žã€‘
+1.[å®¢æˆ·ç«¯]é€»è¾‘ä»£ç åœ¨flappy_bird\libç›®å½•ä¸‹ã€‚
+2.[å®¢æˆ·ç«¯]èµ„æºæ–‡ä»¶åœ¨flappy_bird\dataç›®å½•ä¸‹ã€‚
+3.[æœåŠ¡ç«¯]ä»£ç åœ¨flappy_bird\FlappyBirdServerç›®å½•ä¸‹ã€‚
+-mirror post
