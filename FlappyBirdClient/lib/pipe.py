@@ -26,23 +26,15 @@ downPipeYPosition = {}    #朝下pipe的最下侧的y坐标
 upPipeYPosition = {}  #朝上pipe的最上侧的y坐标
 pipeIndex = 0
 speed = 2
-<<<<<<< HEAD
 g_level = None
-=======
->>>>>>> 5e8ee10ea1c78d5c16c2c6ffe0c926a3e3b8d6e8
 
 class ActorModel(object):
     def __init__(self, cx, cy, half_width, half_height,name):
             self.cshape = CircleShape(eu.Vector2(center_x, center_y), radius)
             self.name = name
 def createPipes(layer, gameScene, spriteBird, score, level = "easy"):
-<<<<<<< HEAD
     global g_score, movePipeFunc, calScoreFunc,g_level
     g_level = level
-=======
-    global g_score, movePipeFunc, calScoreFunc
-
->>>>>>> 5e8ee10ea1c78d5c16c2c6ffe0c926a3e3b8d6e8
     def initPipe():
         for i in range(0, pipeCount):
             # 把downPipe和upPipe组合为singlePipe
@@ -60,10 +52,6 @@ def createPipes(layer, gameScene, spriteBird, score, level = "easy"):
             pipeState[i] = PIPE_NEW
             upPipeYPosition[i] = heightOffset + pipeHeight / 2
             downPipeYPosition[i] = heightOffset + pipeHeight / 2 + pipeDistance
-<<<<<<< HEAD
-=======
-
->>>>>>> 5e8ee10ea1c78d5c16c2c6ffe0c926a3e3b8d6e8
     def movePipe(dt):
         global heightOffset, speed
         if level == "easy":
@@ -89,17 +77,9 @@ def createPipes(layer, gameScene, spriteBird, score, level = "easy"):
                 next = i - 1
                 if next < 0: next = pipeCount - 1
                 pipeNode.position = (pipes[next].position[0] + pipeInterval, heightOffset)
-<<<<<<< HEAD
                 upPipeYPosition[i] = heightOffset + pipeHeight / 2
                 downPipeYPosition[i] = heightOffset + pipeHeight / 2 + pipeDistance
                 break
-=======
-                print heightOffset
-                upPipeYPosition[i] = heightOffset + pipeHeight / 2
-                downPipeYPosition[i] = heightOffset + pipeHeight / 2 + pipeDistance
-                break
-
->>>>>>> 5e8ee10ea1c78d5c16c2c6ffe0c926a3e3b8d6e8
     def calScore(dt):
         global g_score
         birdXPosition = spriteBird.position[0]
@@ -117,10 +97,6 @@ def createPipes(layer, gameScene, spriteBird, score, level = "easy"):
     gameScene.schedule(calScore)
     return pipes
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5e8ee10ea1c78d5c16c2c6ffe0c926a3e3b8d6e8
 def removeMovePipeFunc(gameScene):
     global movePipeFunc
     if movePipeFunc != None:

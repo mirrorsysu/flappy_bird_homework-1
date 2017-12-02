@@ -51,12 +51,9 @@ def get_send_data():
 def request_notice():
     send_data = get_send_data()
     send_data['notice'] = 'request notice'
-<<<<<<< HEAD
     netstream.send(sock, send_data)
 
 def post_score(score):
     send_data = get_send_data()
     send_data['score'] = score
-=======
->>>>>>> 5e8ee10ea1c78d5c16c2c6ffe0c926a3e3b8d6e8
     netstream.send(sock, send_data)
