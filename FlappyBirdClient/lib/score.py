@@ -4,7 +4,10 @@ from atlas import *
 import common
 
 spriteScores = {}
+<<<<<<< HEAD
 BestScores = {}
+=======
+>>>>>>> 5e8ee10ea1c78d5c16c2c6ffe0c926a3e3b8d6e8
 scoreLayer = None
 
 #开始游戏后显示当前得分
@@ -30,6 +33,7 @@ def setSpriteScores(score):
         scoreLayer.add(s, z=50)
         spriteScores[i] = s
         i = i + 1
+<<<<<<< HEAD
 
 def setPanelScores(score):
     global scoreLayer
@@ -66,3 +70,5 @@ def setBestScores(score):
         scoreLayer.add(s, z=52)
         BestScores[i] = s
         i = i + 1
+=======
+>>>>>>> 5e8ee10ea1c78d5c16c2c6ffe0c926a3e3b8d6e8

@@ -30,6 +30,7 @@ password = None
 ipTextField = None
 errorLabel = None
 isGamseStart = False
+<<<<<<< HEAD
 username = "username"
 isOnline = 0
 
@@ -42,6 +43,14 @@ def initGameLayer():
     # 创建场景
     gameLayer = Layer() # gameLayer: 游戏场景所在的layer
     # 添加背景
+=======
+
+def initGameLayer():
+    global spriteBird, gameLayer, land_1, land_2
+    # gameLayer: 游戏场景所在的layer
+    gameLayer = Layer()
+    # add background
+>>>>>>> 5e8ee10ea1c78d5c16c2c6ffe0c926a3e3b8d6e8
     t = random.randint(0,1)
     if t == 0:
         bg = createAtlasSprite("bg_day")
@@ -49,12 +58,17 @@ def initGameLayer():
         bg = createAtlasSprite("bg_night")
     bg.position = (common.visibleSize["width"]/2, common.visibleSize["height"]/2)
     gameLayer.add(bg, z=0)
+<<<<<<< HEAD
     #添加标题Logo
+=======
+    # add title
+>>>>>>> 5e8ee10ea1c78d5c16c2c6ffe0c926a3e3b8d6e8
     titleLayer = Layer()
     title = createAtlasSprite("title")
     title.position = (common.visibleSize["width"] / 2, common.visibleSize["height"] * 4 / 5)
     titleLayer.add(title, z=50)
     gameLayer.add(titleLayer, z=50, name="titleLayer")
+<<<<<<< HEAD
     # 添加鸟
     spriteBird = creatBird()
     #spriteBird.position = (common.visibleSize["width"] / 2, common.visibleSize["height"] / 3)
@@ -63,6 +77,16 @@ def initGameLayer():
     gameLayer.add(land_1, z=10)
     gameLayer.add(land_2, z=10)
     # 将gameLayer添加到scene中
+=======
+    # add moving bird
+    spriteBird = creatBird()
+    #spriteBird.position = (common.visibleSize["width"] / 2, common.visibleSize["height"] / 3)
+    # add moving land
+    land_1, land_2 = createLand()
+    gameLayer.add(land_1, z=10)
+    gameLayer.add(land_2, z=10)
+    # add gameLayer to gameScene
+>>>>>>> 5e8ee10ea1c78d5c16c2c6ffe0c926a3e3b8d6e8
     gameScene.add(gameLayer)
 
 def game_start(_gameScene):
@@ -86,11 +110,16 @@ def createLabel(value, x, y):
     return label
 
 def removeLayer(name):
+<<<<<<< HEAD
     try:
         gameLayer.remove(name)
     except Exception, e:
         print "remove error with " + name
         pass
+=======
+    print "remove"
+    gameLayer.remove(name)
+>>>>>>> 5e8ee10ea1c78d5c16c2c6ffe0c926a3e3b8d6e8
 
 # single game start button的回调函数
 def singleGameReady(level = "easy"):
@@ -152,8 +181,13 @@ def singleGameReady(level = "easy"):
     gameScene.add(readyLayer, z=10)
 
 def backToMainMenu():
+<<<<<<< HEAD
     restart_button = RestartMenu()
     gameLayer.add(restart_button, z=50, name="restart_button")
+=======
+    restartButton = RestartMenu()
+    gameLayer.add(restartButton, z=50)
+>>>>>>> 5e8ee10ea1c78d5c16c2c6ffe0c926a3e3b8d6e8
 
 def showNotice():
     connected = connect(gameScene) # connect is from network.py
@@ -173,6 +207,7 @@ def removeContent():
         gameLayer.remove("content")
     except Exception, e:
         pass
+<<<<<<< HEAD
 
 class RestartMenu(Layer):
     def __init__(self):  
@@ -245,6 +280,26 @@ class RestartMenu(Layer):
         else:
             pass
         gameLayer.add(start_botton, z=20, name="start_button")
+=======
+    
+
+class RestartMenu(Menu):
+    def __init__(self):  
+        super(RestartMenu, self).__init__()
+        self.menu_valign = CENTER  
+        self.menu_halign = CENTER
+        items = [
+                (ImageMenuItem(common.load_image("button_restart.png"), self.initMainMenu)),
+                (ImageMenuItem(common.load_image("button_notice.png"), showNotice))
+                ]  
+        self.create_menu(items,selected_effect=zoom_in(),unselected_effect=zoom_out())
+
+    def initMainMenu(self):
+        gameScene.remove(gameLayer)
+        initGameLayer()
+        ini_button = StartMenu()
+        gameLayer.add(ini_button, z=20, name="init_button")
+>>>>>>> 5e8ee10ea1c78d5c16c2c6ffe0c926a3e3b8d6e8
 
 class SingleGameStartMenu(Menu):
     def __init__(self):  
@@ -262,6 +317,7 @@ class SingleGameStartMenu(Menu):
         self.create_menu(items,selected_effect=zoom_in(),unselected_effect=zoom_out())
 
     def easy_degree(self):
+<<<<<<< HEAD
         removeLayer("start_button")
         singleGameReady("easy") 
     def mid_degree(self):
@@ -272,6 +328,18 @@ class SingleGameStartMenu(Menu):
         singleGameReady("hard") 
     def back(self):
         removeLayer("start_button")
+=======
+        gameLayer.remove("start_button")
+        singleGameReady("easy") 
+    def mid_degree(self):
+        gameLayer.remove("start_button")
+        singleGameReady("mid") 
+    def hard_degree(self):
+        gameLayer.remove("start_button")
+        singleGameReady("hard") 
+    def back(self):
+        gameLayer.remove("start_button")
+>>>>>>> 5e8ee10ea1c78d5c16c2c6ffe0c926a3e3b8d6e8
         ini_button = StartMenu()
         gameLayer.add(ini_button, z=20, name="init_button")
     def exit(self):
@@ -288,6 +356,7 @@ class StartMenu(Menu):
         self.create_menu(items,selected_effect=zoom_in(),unselected_effect=zoom_out())
 
     def begin_game(self):
+<<<<<<< HEAD
         removeLayer("init_button")
         start_botton = SingleGameStartMenu()
         gameLayer.add(start_botton, z=20, name="start_button")
@@ -313,3 +382,8 @@ class InputBox(Menu):
         showContent(self.str)
     def text(self):
         return self.str
+=======
+        gameLayer.remove("init_button")
+        start_botton = SingleGameStartMenu()
+        gameLayer.add(start_botton, z=20, name="start_button")
+>>>>>>> 5e8ee10ea1c78d5c16c2c6ffe0c926a3e3b8d6e8

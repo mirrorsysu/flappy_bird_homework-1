@@ -3,7 +3,10 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/FlappyBirdClient.iml" filepath="$PROJECT_DIR$/.idea/FlappyBirdClient.iml" />
+<<<<<<< HEAD
       <module fileurl="file://$PROJECT_DIR$/../FlappyBirdServer/.idea/FlappyBirdServer.iml" filepath="$PROJECT_DIR$/../FlappyBirdServer/.idea/FlappyBirdServer.iml" />
+=======
+>>>>>>> 5e8ee10ea1c78d5c16c2c6ffe0c926a3e3b8d6e8
     </modules>
   </component>
 </project>

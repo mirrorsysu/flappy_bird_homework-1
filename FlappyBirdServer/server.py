@@ -56,11 +56,14 @@ while inputs:
 						print 'receive notice request from user id:', number
 						sendData = {"notice_content": "This is a notice from server. Good luck!"}
 						netstream.send(onlineUser[number]['connection'], sendData)
+<<<<<<< HEAD
 					if 'score'in recvData:
 						number = recvData['sid']
 						print 'receive score from user id:', number
 						sendData = {"notice_content": str(recvData['score'])}       #测试用
 						netstream.send(onlineUser[number]['connection'], sendData)  #测试用
+=======
+>>>>>>> 5e8ee10ea1c78d5c16c2c6ffe0c926a3e3b8d6e8
 	except Exception:
 		traceback.print_exc()
 		print 'Error: socket 链接异常'
