@@ -32,7 +32,9 @@ errorLabel = None
 isGamseStart = False
 username = "username"
 isOnline = 0
-
+Rank1Scores = {}
+Rank2Scores = {}
+Rank3Scores = {}
 def getUsername():
     global username
     return username
@@ -174,12 +176,41 @@ def removeContent():
     except Exception, e:
         pass
 
+def showScore(level):
+    global gameLayer
+    scorerank = Layer()
+    rank = createAtlasSprite("scorerank")
+    rank.position = (common.visibleSize["width"]/2, common.visibleSize["height"]/2)
+    scorerank.add(rank,z=0)
+    turnback = Menu()
+    turnback.menu_valign = BOTTOM
+    turnback.menu_halign = RIGHT
+    items = [
+            (ImageMenuItem(common.load_image("back.png"),goback))
+    ]
+    turnback.create_menu(items,selected_effect=zoom_in(),unselected_effect=zoom_out())
+    scorerank.add(turnback,z = 50)
+    try:
+        data = open(level + '_score.txt', 'r')
+        f = data.read().splitlines()
+        data.close()
+    except Exception, e:
+        data = None
+        f = ["0", "0", "0"]
+    setRank1Scores(scorerank,int(f[0].encode("utf-8")))
+    setRank2Scores(scorerank,int(f[1].encode("utf-8")))
+    setRank3Scores(scorerank,int(f[2].encode("utf-8")))
+    gameLayer.add(scorerank,z = 60,name = "score_rank")
+
+def goback():
+    removeLayer("score_rank")
+
 class RestartMenu(Layer):
     def __init__(self):  
         super(RestartMenu, self).__init__()
         items = [
                 (ImageMenuItem(common.load_image("button_restart.png"), self.begin_game)),
-                (ImageMenuItem(common.load_image("button_score.png"), showNotice))
+                (ImageMenuItem(common.load_image("button_score.png"), self.showRank))
                 ]
         menu = Menu()
         menu.menu_valign = BOTTOM
@@ -197,9 +228,9 @@ class RestartMenu(Layer):
         self.add(menu, z=52)
         import pipe
         now_score = pipe.g_score
-        level = pipe.g_level
+        self.level = pipe.g_level
         try:
-            data = open(level + '_score.txt', 'r')
+            data = open(self.level + '_score.txt', 'r')
             f = data.read().splitlines()
             data.close()
         except Exception, e:
@@ -219,7 +250,7 @@ class RestartMenu(Layer):
             f[2] = str(now_score)
             panel_name = "score_panel_3"
         try:
-            data = open(level +'_score.txt', 'w+')
+            data = open(self.level +'_score.txt', 'w+')
             for i in f:
                 data.write(str(i) + '\n')
             data.close()
@@ -231,11 +262,11 @@ class RestartMenu(Layer):
         gameoverLogo = createAtlasSprite("text_game_over")
         gameoverLogo.position = (common.visibleSize["width"] / 2, common.visibleSize["height"] * 4 / 5)
         self.add(gameoverLogo, z=50)
-        scoreLayer = Layer()
+        _scoreLayer = Layer()
         scorepanel = createAtlasSprite(panel_name)
         scorepanel.position = (common.visibleSize["width"] / 2, common.visibleSize["height"] * 6 / 11)
-        scoreLayer.add(scorepanel, z=50)
-        self.add(scoreLayer, z=51, name="scoreLayer")
+        _scoreLayer.add(scorepanel, z=50)
+        self.add(_scoreLayer, z=51)
 
     def begin_game(self):
         removeLayer("restart_button")
@@ -245,6 +276,8 @@ class RestartMenu(Layer):
         else:
             pass
         gameLayer.add(start_botton, z=20, name="start_button")
+    def showRank(self):
+        showScore(self.level)
 
 class SingleGameStartMenu(Menu):
     def __init__(self):  
@@ -255,7 +288,6 @@ class SingleGameStartMenu(Menu):
                 (ImageMenuItem(common.load_image("easy.png"), self.easy_degree)),
                 (ImageMenuItem(common.load_image("mid.png"), self.mid_degree)),
                 (ImageMenuItem(common.load_image("hard.png"), self.hard_degree)),
-                (ImageMenuItem(common.load_image("button_notice.png"), showNotice)),
                 (ImageMenuItem(common.load_image("exit.png"), self.exit)),
                 (ImageMenuItem(common.load_image("back.png"), self.back))
                 ]  
@@ -276,6 +308,7 @@ class SingleGameStartMenu(Menu):
         gameLayer.add(ini_button, z=20, name="init_button")
     def exit(self):
         exit()
+
 class StartMenu(Menu):
     def __init__(self):
         super(StartMenu, self).__init__()
@@ -293,23 +326,111 @@ class StartMenu(Menu):
         gameLayer.add(start_botton, z=20, name="start_button")
 
 class InputBox(Menu):
-    def __init__(self):
+    def __init__(self, name, position = [common.visibleSize["width"] / 2 + 5, common.visibleSize["height"] * 9 / 10]):
         super(InputBox, self).__init__()
+        self.pos_x = position[0]
+        self.pos_y = position[1]
         self.menu_valign = CENTER
         self.menu_halign = CENTER
         items = [
-            (ImageMenuItem(common.load_image("Login.png"), None))
+            (ImageMenuItem(common.load_image("inputbox.png"), None))
         ]
         self.create_menu(items)
+        width, height = director.get_window_size()
+        for idx, i in enumerate(self.children):
+            item = i[1]
+            item.transform_anchor = (self.pos_x - 8, self.pos_y - 3)
+            item.generateWidgets(self.pos_x - 8, self.pos_y - 3, self.font_item,
+                                 self.font_item_selected)
+
         self.str = ""
+        self.name = name
 
     def on_key_press(self, symbol, modifiers):
         from pyglet.window import key
-        if key.A <= symbol <= key.Z and len(self.str) <= 8:
-            self.str += chr(symbol - key.A + 65)
 
         if symbol == key.BACKSPACE:
             self.str = self.str[0:-1]
-        showContent(self.str)
+        if len(self.str) == 8:
+            pass
+        elif key.A <= symbol <= key.Z:
+            self.str += chr(symbol - key.A + 65)
+        elif symbol == key.SPACE:
+            self.str += " "
+        elif key._0 <= symbol <= key._9:
+            self.str += chr(symbol - key._0 + 48)
+        elif key.NUM_0 <= symbol <= key.NUM_9:
+            self.str += chr(symbol - key.NUM_0 + 48)
+
+        self.showInput(self.str)
+
     def text(self):
         return self.str
+
+    def showInput(self, content):
+        removeLayer(self.name)
+        notice = self.createLabel(content, self.pos_x, self.pos_y)
+        gameLayer.add(notice, z=70, name=self.name)
+
+    def createLabel(self, value, x, y):
+        label = Label(value,
+                      font_name='MarkerFelt-Thin',
+                      font_size=13,
+                      color=(0, 0, 0, 255),
+                      width=common.visibleSize["width"]/2,
+                      multiline=True,
+                      anchor_x='center', anchor_y='center')
+        label.position = (x, y)
+        return label
+
+def setRank3Scores(scorerank, score):
+    global Rank3Scores
+    for k in Rank3Scores:
+        try:
+            scorerank.remove(Rank3Scores[k])
+            Rank3Scores[k] = None
+        except:
+            pass
+
+    scoreStr = str(score)
+    i = 0
+    for d in scoreStr:
+        s = createAtlasSprite("number_score_0"+d)
+        s.position = common.visibleSize["width"] *39/50 + 36 - 18 * len(scoreStr) + 18*i, common.visibleSize["height"]* 30/66
+        scorerank.add(s, z=61)
+        Rank3Scores[i] = s
+        i = i + 1
+def setRank2Scores(scorerank, score):
+    global Rank2Scores
+    for k in Rank2Scores:
+        try:
+            scorerank.remove(Rank2Scores[k])
+            Rank2Scores[k] = None
+        except:
+            pass
+
+    scoreStr = str(score)
+    i = 0
+    for d in scoreStr:
+        s = createAtlasSprite("number_score_0"+d)
+        s.position = common.visibleSize["width"] *39/50 + 36 - 18 * len(scoreStr) + 18*i, common.visibleSize["height"]* 40/66
+        scorerank.add(s, z=61)
+        Rank2Scores[i] = s
+        i = i + 1
+def setRank1Scores(scorerank, score):
+    global Rank1Scores
+    for k in Rank1Scores:
+        try:
+            scorerank.remove(Rank1Scores[k])
+            Rank1Scores[k] = None
+        except:
+            pass
+
+    scoreStr = str(score)
+    i = 0
+    for d in scoreStr:
+        s = createAtlasSprite("number_score_0"+d)
+        s.position = common.visibleSize["width"] *39/50 + 36 - 18 * len(scoreStr) + 18*i, common.visibleSize["height"]* 50/66
+        scorerank.add(s, z=61)
+        Rank1Scores[i] = s
+        i = i + 1
