@@ -35,6 +35,7 @@ isOnline = 0
 Rank1Scores = {}
 Rank2Scores = {}
 Rank3Scores = {}
+pattern = -1
 def getUsername():
     global username
     return username
@@ -95,7 +96,7 @@ def removeLayer(name):
         pass
 
 # single game start button的回调函数
-def singleGameReady(level = "easy"):
+def singleGameReady(level = "easy",gtype = 'normal'):
     global spriteBird
     removeContent()
     removeLayer("titleLayer")
@@ -127,10 +128,12 @@ def singleGameReady(level = "easy"):
         # ready layer的回调函数
         def singleGameStart(self, eventType, x, y):
             isGamseStart = True
-        
-            spriteBird.gravity = gravity #gravity is from bird.py
+            if gtype == 'normal':
+                spriteBird.gravity = gravity
+            else:
+                spriteBird.gravity = -gravity
             # handling bird touch events
-            addTouchHandler(gameScene, isGamseStart, spriteBird)
+            addTouchHandler(gameScene, isGamseStart, spriteBird , gtype)
             score = 0   #分数，飞过一个管子得到一分
             # add moving pipes
             if level == "easy":
@@ -144,7 +147,7 @@ def singleGameReady(level = "easy"):
             # add score
             createScoreLayer(gameLayer)
             # add collision detect
-            addCollision(gameScene, gameLayer, spriteBird, pipes, land_1, land_2)
+            addCollision(gameScene, gameLayer, spriteBird, pipes, land_1, land_2, gtype)
             # remove startLayer
             gameScene.remove(readyLayer)
 
@@ -153,7 +156,12 @@ def singleGameReady(level = "easy"):
     readyLayer.add(tutorial)
     gameScene.add(readyLayer, z=10)
 
-def backToMainMenu():
+def backToMainMenu(gtype='normal'):
+    global pattern
+    if gtype == 'normal':
+        pattern = 0
+    else:
+        pattern = 1
     restart_button = RestartMenu()
     gameLayer.add(restart_button, z=50, name="restart_button")
 
@@ -176,41 +184,13 @@ def removeContent():
     except Exception, e:
         pass
 
-def showScore(level):
-    global gameLayer
-    scorerank = Layer()
-    rank = createAtlasSprite("scorerank")
-    rank.position = (common.visibleSize["width"]/2, common.visibleSize["height"]/2)
-    scorerank.add(rank,z=0)
-    turnback = Menu()
-    turnback.menu_valign = BOTTOM
-    turnback.menu_halign = RIGHT
-    items = [
-            (ImageMenuItem(common.load_image("back.png"),goback))
-    ]
-    turnback.create_menu(items,selected_effect=zoom_in(),unselected_effect=zoom_out())
-    scorerank.add(turnback,z = 50)
-    try:
-        data = open(level + '_score.txt', 'r')
-        f = data.read().splitlines()
-        data.close()
-    except Exception, e:
-        data = None
-        f = ["0", "0", "0"]
-    setRank1Scores(scorerank,int(f[0].encode("utf-8")))
-    setRank2Scores(scorerank,int(f[1].encode("utf-8")))
-    setRank3Scores(scorerank,int(f[2].encode("utf-8")))
-    gameLayer.add(scorerank,z = 60,name = "score_rank")
-
-def goback():
-    removeLayer("score_rank")
-
 class RestartMenu(Layer):
+    global pattern
     def __init__(self):  
         super(RestartMenu, self).__init__()
         items = [
                 (ImageMenuItem(common.load_image("button_restart.png"), self.begin_game)),
-                (ImageMenuItem(common.load_image("button_score.png"), self.showRank))
+                (ImageMenuItem(common.load_image("button_score.png"), self.showscore))
                 ]
         menu = Menu()
         menu.menu_valign = BOTTOM
@@ -228,15 +208,17 @@ class RestartMenu(Layer):
         self.add(menu, z=52)
         import pipe
         now_score = pipe.g_score
-        self.level = pipe.g_level
+        level = pipe.g_level
         try:
-            data = open(self.level + '_score.txt', 'r')
+            if pattern == 0:
+                data = open(level + '_score.txt', 'r')
+            else:
+                data = open('reverse.txt', 'r')
             f = data.read().splitlines()
             data.close()
         except Exception, e:
             data = None
             f = []
-
         while len(f) < 3:
             f.append("0")
         panel_name = "score_panel_4"
@@ -250,7 +232,10 @@ class RestartMenu(Layer):
             f[2] = str(now_score)
             panel_name = "score_panel_3"
         try:
-            data = open(self.level +'_score.txt', 'w+')
+            if pattern == 0:
+                data = open(level + '_score.txt', 'w+')
+            else:
+                data = open('reverse.txt', 'w+')
             for i in f:
                 data.write(str(i) + '\n')
             data.close()
@@ -276,39 +261,64 @@ class RestartMenu(Layer):
         else:
             pass
         gameLayer.add(start_botton, z=20, name="start_button")
-    def showRank(self):
-        showScore(self.level)
+    def showscore(self):
+        global pattern
+    	scorerank = Layer()
+    	rank = createAtlasSprite("scorerank")
+    	rank.position = (common.visibleSize["width"]/2, common.visibleSize["height"]/2)
+    	scorerank.add(rank,z=60)
+    	turnback = Menu()
+    	turnback.menu_valign = BOTTOM
+    	turnback.menu_halign = RIGHT
+    	items = [
+    			(ImageMenuItem(common.load_image("back.png"),goback))
+    			]
+    	turnback.create_menu(items,selected_effect=zoom_in(),unselected_effect=zoom_out())
+        scorerank.add(turnback,z = 61)
+        import pipe
+        level = pipe.g_level
+        try:
+            if pattern == 0:
+                data = open(level + '_score.txt', 'r')
+            else:
+                data = open('reverse.txt', 'r')
+            f = data.read().splitlines()
+            data.close()
+        except Exception, e:
+            data = None
+            f = []
+        setRank1Scores(scorerank,int(f[0].encode("utf-8")))
+        setRank2Scores(scorerank,int(f[1].encode("utf-8")))
+        setRank3Scores(scorerank,int(f[2].encode("utf-8")))
+    	gameLayer.add(scorerank,z = 60,name = "scorerank")
 
+def goback():
+	removeLayer("scorerank")
 class SingleGameStartMenu(Menu):
     def __init__(self):  
         super(SingleGameStartMenu, self).__init__()
-        self.menu_valign = BOTTOM
+        self.menu_valign = CENTER
         self.menu_halign = CENTER
         items = [
-                (ImageMenuItem(common.load_image("easy.png"), self.easy_degree)),
-                (ImageMenuItem(common.load_image("mid.png"), self.mid_degree)),
-                (ImageMenuItem(common.load_image("hard.png"), self.hard_degree)),
+                (ImageMenuItem(common.load_image("seeme.png"), self.select_diff)),
+                (ImageMenuItem(common.load_image("reverse.png"),self.enter)),
                 (ImageMenuItem(common.load_image("exit.png"), self.exit)),
                 (ImageMenuItem(common.load_image("back.png"), self.back))
                 ]  
-        self.create_menu(items,selected_effect=zoom_in(),unselected_effect=zoom_out())
-
-    def easy_degree(self):
+        self.create_menu(items,selected_effect=zoom_in(),unselected_effect=zoom_out()) 
+    def select_diff(self):
+    	removeLayer("start_button")
+    	diff_degree = DiffDegreeMenu()
+    	gameLayer.add(diff_degree, z=20, name="diff_button")
+    def enter(self):
         removeLayer("start_button")
-        singleGameReady("easy") 
-    def mid_degree(self):
-        removeLayer("start_button")
-        singleGameReady("mid") 
-    def hard_degree(self):
-        removeLayer("start_button")
-        singleGameReady("hard") 
+        singleGameReady("hard",'reverse')
     def back(self):
         removeLayer("start_button")
         ini_button = StartMenu()
         gameLayer.add(ini_button, z=20, name="init_button")
     def exit(self):
         exit()
-
 class StartMenu(Menu):
     def __init__(self):
         super(StartMenu, self).__init__()
@@ -326,64 +336,27 @@ class StartMenu(Menu):
         gameLayer.add(start_botton, z=20, name="start_button")
 
 class InputBox(Menu):
-    def __init__(self, name, position = [common.visibleSize["width"] / 2 + 5, common.visibleSize["height"] * 9 / 10]):
+    def __init__(self):
         super(InputBox, self).__init__()
-        self.pos_x = position[0]
-        self.pos_y = position[1]
         self.menu_valign = CENTER
         self.menu_halign = CENTER
         items = [
-            (ImageMenuItem(common.load_image("inputbox.png"), None))
+            (ImageMenuItem(common.load_image("Login.png"), None))
         ]
         self.create_menu(items)
-        width, height = director.get_window_size()
-        for idx, i in enumerate(self.children):
-            item = i[1]
-            item.transform_anchor = (self.pos_x - 8, self.pos_y - 3)
-            item.generateWidgets(self.pos_x - 8, self.pos_y - 3, self.font_item,
-                                 self.font_item_selected)
-
         self.str = ""
-        self.name = name
 
     def on_key_press(self, symbol, modifiers):
         from pyglet.window import key
+        if key.A <= symbol <= key.Z and len(self.str) <= 8:
+            self.str += chr(symbol - key.A + 65)
 
         if symbol == key.BACKSPACE:
             self.str = self.str[0:-1]
-        if len(self.str) == 8:
-            pass
-        elif key.A <= symbol <= key.Z:
-            self.str += chr(symbol - key.A + 65)
-        elif symbol == key.SPACE:
-            self.str += " "
-        elif key._0 <= symbol <= key._9:
-            self.str += chr(symbol - key._0 + 48)
-        elif key.NUM_0 <= symbol <= key.NUM_9:
-            self.str += chr(symbol - key.NUM_0 + 48)
-
-        self.showInput(self.str)
-
+        showContent(self.str)
     def text(self):
         return self.str
-
-    def showInput(self, content):
-        removeLayer(self.name)
-        notice = self.createLabel(content, self.pos_x, self.pos_y)
-        gameLayer.add(notice, z=70, name=self.name)
-
-    def createLabel(self, value, x, y):
-        label = Label(value,
-                      font_name='MarkerFelt-Thin',
-                      font_size=13,
-                      color=(0, 0, 0, 255),
-                      width=common.visibleSize["width"]/2,
-                      multiline=True,
-                      anchor_x='center', anchor_y='center')
-        label.position = (x, y)
-        return label
-
-def setRank3Scores(scorerank, score):
+def setRank3Scores(scorerank,score):
     global Rank3Scores
     for k in Rank3Scores:
         try:
@@ -397,10 +370,10 @@ def setRank3Scores(scorerank, score):
     for d in scoreStr:
         s = createAtlasSprite("number_score_0"+d)
         s.position = common.visibleSize["width"] *39/50 + 36 - 18 * len(scoreStr) + 18*i, common.visibleSize["height"]* 30/66
-        scorerank.add(s, z=61)
+        scorerank.add(s, z=62)
         Rank3Scores[i] = s
         i = i + 1
-def setRank2Scores(scorerank, score):
+def setRank2Scores(scorerank,score):
     global Rank2Scores
     for k in Rank2Scores:
         try:
@@ -414,10 +387,10 @@ def setRank2Scores(scorerank, score):
     for d in scoreStr:
         s = createAtlasSprite("number_score_0"+d)
         s.position = common.visibleSize["width"] *39/50 + 36 - 18 * len(scoreStr) + 18*i, common.visibleSize["height"]* 40/66
-        scorerank.add(s, z=61)
+        scorerank.add(s, z=62)
         Rank2Scores[i] = s
         i = i + 1
-def setRank1Scores(scorerank, score):
+def setRank1Scores(scorerank,score):
     global Rank1Scores
     for k in Rank1Scores:
         try:
@@ -431,6 +404,28 @@ def setRank1Scores(scorerank, score):
     for d in scoreStr:
         s = createAtlasSprite("number_score_0"+d)
         s.position = common.visibleSize["width"] *39/50 + 36 - 18 * len(scoreStr) + 18*i, common.visibleSize["height"]* 50/66
-        scorerank.add(s, z=61)
+        scorerank.add(s, z=62)
         Rank1Scores[i] = s
         i = i + 1
+
+class DiffDegreeMenu(Menu):
+    def __init__(self):
+        super(DiffDegreeMenu, self).__init__()
+        self.menu_valign = CENTER
+        self.menu_halign = CENTER
+        items = [
+                (ImageMenuItem(common.load_image("easy.png"), self.easy_degree)),
+                (ImageMenuItem(common.load_image("mid.png"), self.mid_degree)),
+                (ImageMenuItem(common.load_image("hard.png"), self.hard_degree))
+                ]
+        self.create_menu(items,selected_effect=zoom_in(),unselected_effect=zoom_out())
+
+    def easy_degree(self):
+        removeLayer("diff_button")
+        singleGameReady("easy",'normal') 
+    def mid_degree(self):
+        removeLayer("diff_button",'normal')
+        singleGameReady("mid") 
+    def hard_degree(self):
+        removeLayer("diff_button",'normal')
+        singleGameReady("hard")
