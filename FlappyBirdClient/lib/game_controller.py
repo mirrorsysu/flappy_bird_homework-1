@@ -78,11 +78,17 @@ def login_success():
     global isOnline
     isOnline = 1
     print("LOGIN SUCCESS UNAME:" + g_username)
+    removeLayer("login_button")
+    removeLayer("content")
+    removeLayer("username")
+    removeLayer("password")
+    start_botton = SingleGameStartMenu()
+    gameLayer.add(start_botton, z=20, name="start_button")
 
 def createLabel(value, x, y):
-    label=Label(value,  
-        font_name='Times New Roman',  
-        font_size=15, 
+    label=Label(value,
+        font_name='Times New Roman',
+        font_size=15,
         color = (0,0,0,255), 
         width = common.visibleSize["width"] - 20,
         multiline = True,
@@ -247,10 +253,7 @@ class RestartMenu(Layer):
     def begin_game(self):
         removeLayer("restart_button")
         initGameLayer()
-        if isOnline == 0:
-            start_botton = SingleGameStartMenu()
-        else:
-            pass
+        start_botton = SingleGameStartMenu()
         gameLayer.add(start_botton, z=20, name="start_button")
     def showscore(self):
         global pattern
@@ -432,7 +435,7 @@ class InputBox(Menu):
     def createLabel(self, value, x, y):
         label = Label(value,
                       font_name='MarkerFelt-Thin',
-                      font_size=13,
+                      font_size=15,
                       color=(0, 0, 0, 255),
                       width=common.visibleSize["width"]/2,
                       multiline=True,
