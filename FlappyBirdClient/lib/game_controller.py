@@ -82,6 +82,9 @@ def login_success():
     removeLayer("content")
     removeLayer("username")
     removeLayer("password")
+    ol = createAtlasSprite("online")
+    ol.position = (common.visibleSize["width"]*18/100, common.visibleSize["height"]*97/100)
+    gameLayer.add(ol, name="online", z=100)
     start_botton = SingleGameStartMenu()
     gameLayer.add(start_botton, z=20, name="start_button")
 
@@ -288,18 +291,23 @@ class RestartMenu(Layer):
 
 def goback():
 	removeLayer("scorerank")
-class SingleGameStartMenu(Menu):
-    def __init__(self):  
+class SingleGameStartMenu(Layer):
+    def __init__(self):
+        global isOnline
         super(SingleGameStartMenu, self).__init__()
         self.menu_valign = CENTER
         self.menu_halign = CENTER
+        menu = Menu()
         items = [
                 (ImageMenuItem(common.load_image("seeme.png"), self.select_diff)),
                 (ImageMenuItem(common.load_image("reverse.png"),self.enter)),
                 (ImageMenuItem(common.load_image("exit.png"), self.exit)),
-                (ImageMenuItem(common.load_image("back.png"), self.back))
-                ]  
-        self.create_menu(items,selected_effect=zoom_in(),unselected_effect=zoom_out()) 
+                (ImageMenuItem(common.load_image("back.png"), self.back)),
+                ]
+        if isOnline == 1:
+            print("111")
+        menu.create_menu(items,selected_effect=zoom_in(),unselected_effect=zoom_out())
+        self.add(menu)
     def select_diff(self):
     	removeLayer("start_button")
     	diff_degree = DiffDegreeMenu()
@@ -308,9 +316,13 @@ class SingleGameStartMenu(Menu):
         removeLayer("start_button")
         singleGameReady("hard",'reverse')
     def back(self):
+        global isOnline
         removeLayer("start_button")
+        removeLayer("online")
+        isOnline = 0
         ini_button = StartMenu()
         gameLayer.add(ini_button, z=20, name="init_button")
+
     def exit(self):
         exit()
 class StartMenu(Menu):
