@@ -30,15 +30,12 @@ password = None
 ipTextField = None
 errorLabel = None
 isGamseStart = False
-username = "username"
+g_username = "username"
 isOnline = 0
 Rank1Scores = {}
 Rank2Scores = {}
 Rank3Scores = {}
 pattern = -1
-def getUsername():
-    global username
-    return username
 
 def initGameLayer():
     global spriteBird, gameLayer, land_1, land_2
@@ -76,6 +73,11 @@ def game_start(_gameScene):
     ini_button = StartMenu()
     gameLayer.add(ini_button, z=20, name="init_button")
     connect(gameScene)
+
+def login_success():
+    global isOnline
+    isOnline = 1
+    print("LOGIN SUCCESS UNAME:" + g_username)
 
 def createLabel(value, x, y):
     label=Label(value,  
@@ -155,7 +157,6 @@ def singleGameReady(level = "easy",gtype = 'normal'):
     readyLayer.add(ready)
     readyLayer.add(tutorial)
     gameScene.add(readyLayer, z=10)
-
 def backToMainMenu(gtype='normal'):
     global pattern
     if gtype == 'normal':
@@ -164,7 +165,6 @@ def backToMainMenu(gtype='normal'):
         pattern = 1
     restart_button = RestartMenu()
     gameLayer.add(restart_button, z=50, name="restart_button")
-
 def showNotice():
     connected = connect(gameScene) # connect is from network.py
     if not connected:
@@ -172,12 +172,10 @@ def showNotice():
         showContent(content)
     else:
         request_notice() # request_notice is from network.py
-
 def showContent(content):
     removeContent()
     notice = createLabel(content, common.visibleSize["width"]/2+5, common.visibleSize["height"] * 9/10)
     gameLayer.add(notice, z=70, name="content")
-
 def removeContent():
     try:
         gameLayer.remove("content")
@@ -197,14 +195,7 @@ class RestartMenu(Layer):
         menu.menu_halign = LEFT
         positions = [(common.visibleSize["width"] / 6, common.visibleSize["height"] / 3), (common.visibleSize["width"] * 3 / 5, common.visibleSize["height"] / 3)]
         menu.create_menu(items, selected_effect=shake(), unselected_effect=shake_back())
-        width, height = director.get_window_size()
-        for idx, i in enumerate(menu.children):
-            item = i[1]
-            pos_x = positions[idx][0]
-            pos_y = positions[idx][1]
-            item.transform_anchor = (pos_x, pos_y)
-            item.generateWidgets(pos_x, pos_y, menu.font_item,
-                                 menu.font_item_selected)
+        setMenuItemPos(menu, positions)
         self.add(menu, z=52)
         import pipe
         now_score = pipe.g_score
@@ -326,7 +317,7 @@ class StartMenu(Menu):
         self.menu_halign = CENTER
         items = [
                 (ImageMenuItem(common.load_image("button_start.png"), self.begin_game)),
-                (ImageMenuItem(common.load_image("Login.png"), None))
+                (ImageMenuItem(common.load_image("Login.png"), self.login_menu))
                 ]
         self.create_menu(items,selected_effect=zoom_in(),unselected_effect=zoom_out())
 
@@ -334,28 +325,120 @@ class StartMenu(Menu):
         removeLayer("init_button")
         start_botton = SingleGameStartMenu()
         gameLayer.add(start_botton, z=20, name="start_button")
+    def login_menu(self):
+        removeLayer("init_button")
+        login_botton = loginMenu()
+        gameLayer.add(login_botton, name="login_button")
+
+class loginMenu(Layer):
+    def __init__(self):
+        super(loginMenu, self).__init__()
+        position = [common.visibleSize["width"] / 2 + 5, common.visibleSize["height"] * 3 / 5]
+        self.uname_input = InputBox("username", position)
+        position = [common.visibleSize["width"] / 2 + 5, common.visibleSize["height"] * 31 / 60]
+        self. pwd_input = InputBox("password", position, type="*")
+        menu = Menu()
+        items = [
+            (ImageMenuItem(common.load_image("Login.png"), self.login)),
+            (ImageMenuItem(common.load_image("register.png"), self.register))
+        ]
+        menu.create_menu(items, selected_effect=shake(), unselected_effect=shake_back())
+        positions = [(common.visibleSize["width"] / 3, common.visibleSize["height"] * 2/ 5), (common.visibleSize["width"] * 3 / 5, common.visibleSize["height"] * 2/ 5)]
+        setMenuItemPos(menu, positions)
+        self.add(self.uname_input)
+        self.add(self.pwd_input)
+        self.add(menu)
+
+    def login(self):
+        global g_username
+        username = self.uname_input.text()
+        password = self.pwd_input.text()
+        connected = connect(gameScene)  # connect is from network.py
+        if not connected:
+            content = "Cannot connect to server"
+            showContent(content)
+        else:
+            g_username = username
+            request_login(username, password)  # request_notice is from network.py
+
+    def register(self):
+        username = self.uname_input.text()
+        password = self.pwd_input.text()
+        connected = connect(gameScene)  # connect is from network.py
+        if not connected:
+            content = "Cannot connect to server"
+            showContent(content)
+        else:
+            request_register(username, password)  # request_notice is from network.py
 
 class InputBox(Menu):
-    def __init__(self):
+    def __init__(self, name, position = [common.visibleSize["width"] / 2 + 5, common.visibleSize["height"] * 9 / 10], type=""):
         super(InputBox, self).__init__()
+        self.pos_x = position[0]
+        self.pos_y = position[1]
         self.menu_valign = CENTER
         self.menu_halign = CENTER
         items = [
-            (ImageMenuItem(common.load_image("Login.png"), None))
+            (ImageMenuItem(common.load_image("inputbox.png"), None))
         ]
         self.create_menu(items)
-        self.str = ""
+        width, height = director.get_window_size()
+        for idx, i in enumerate(self.children):
+            item = i[1]
+            item.transform_anchor = (self.pos_x - 8, self.pos_y - 3)
+            item.generateWidgets(self.pos_x - 8, self.pos_y - 3, self.font_item,
+                                 self.font_item_selected)
 
+        self.str = ""
+        self.name = name
+        self.is_selected = 0
+        self.type = type
+    def on_mouse_release(self, x, y, buttons, modifiers):
+        (x, y) = director.get_virtual_coordinates(x, y)
+        if self.children[self.selected_index][1].is_inside_box(x, y):
+            self._activate_item()
+            self.is_selected = 1
+        else:
+            self.is_selected = 0
     def on_key_press(self, symbol, modifiers):
         from pyglet.window import key
-        if key.A <= symbol <= key.Z and len(self.str) <= 8:
-            self.str += chr(symbol - key.A + 65)
+        if self.is_selected == 1:
+            if symbol == key.BACKSPACE:
+                self.str = self.str[0:-1]
+            if len(self.str) == 8:
+                pass
+            elif key.A <= symbol <= key.Z:
+                self.str += chr(symbol - key.A + 65)
+            elif symbol == key.SPACE:
+                self.str += " "
+            elif key._0 <= symbol <= key._9:
+                self.str += chr(symbol - key._0 + 48)
+            elif key.NUM_0 <= symbol <= key.NUM_9:
+                self.str += chr(symbol - key.NUM_0 + 48)
 
-        if symbol == key.BACKSPACE:
-            self.str = self.str[0:-1]
-        showContent(self.str)
+            self.showInput(self.str)
     def text(self):
         return self.str
+    def showInput(self, content):
+        removeLayer(self.name)
+        if self.type != "":
+            content = list(content)
+            for i in range(len(content)):
+                content[i] = self.type
+            content = ''.join(content)
+
+        notice = self.createLabel(content, self.pos_x, self.pos_y)
+        gameLayer.add(notice, z=70, name=self.name)
+    def createLabel(self, value, x, y):
+        label = Label(value,
+                      font_name='MarkerFelt-Thin',
+                      font_size=13,
+                      color=(0, 0, 0, 255),
+                      width=common.visibleSize["width"]/2,
+                      multiline=True,
+                      anchor_x='center', anchor_y='center')
+        label.position = (x, y)
+        return label
 def setRank3Scores(scorerank,score):
     global Rank3Scores
     for k in Rank3Scores:
@@ -407,7 +490,15 @@ def setRank1Scores(scorerank,score):
         scorerank.add(s, z=62)
         Rank1Scores[i] = s
         i = i + 1
-
+def setMenuItemPos(menu, positions):
+    width, height = director.get_window_size()
+    for idx, i in enumerate(menu.children):
+        item = i[1]
+        pos_x = positions[idx][0]
+        pos_y = positions[idx][1]
+        item.transform_anchor = (pos_x, pos_y)
+        item.generateWidgets(pos_x, pos_y, menu.font_item,
+                             menu.font_item_selected)
 class DiffDegreeMenu(Menu):
     def __init__(self):
         super(DiffDegreeMenu, self).__init__()
@@ -424,8 +515,9 @@ class DiffDegreeMenu(Menu):
         removeLayer("diff_button")
         singleGameReady("easy",'normal') 
     def mid_degree(self):
-        removeLayer("diff_button",'normal')
-        singleGameReady("mid") 
+        removeLayer("diff_button")
+        singleGameReady("mid",'normal')
     def hard_degree(self):
-        removeLayer("diff_button",'normal')
-        singleGameReady("hard")
+        removeLayer("diff_button")
+        singleGameReady("hard",'normal')
+
