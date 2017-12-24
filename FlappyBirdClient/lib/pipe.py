@@ -87,6 +87,11 @@ def createPipes(layer, gameScene, spriteBird, score, level = "easy"):
             if pipeState[i] == PIPE_NEW and pipes[i].position[0] < birdXPosition:
                 pipeState[i] = PIPE_PASS
                 g_score = g_score + 1
+                import game_controller, time
+                time = time.time() - game_controller.starttime
+                data = open('current.txt', 'w+')
+                data.write(str(g_score) + "@" + str(time))
+                data.close()
                 setSpriteScores(g_score)  # show score on top of screen
 
     g_score = score

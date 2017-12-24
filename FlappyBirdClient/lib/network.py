@@ -47,6 +47,7 @@ def connect(gameScene):
         if  'score' in data:
             score = data['score']
             users = data['users']
+            time_list = data['time']
             print score
             import game_controller
             game_controller.setRank1Scores(game_controller.scorerank, int(score[0].encode("utf-8")))
@@ -56,6 +57,9 @@ def connect(gameScene):
             game_controller.setRank1Name(users[0])
             game_controller.setRank2Name(users[1])
             game_controller.setRank3Name(users[2])
+            game_controller.setRank1Time(game_controller.scorerank,int(time_list[0][0].encode("utf-8")))
+            game_controller.setRank2Time(game_controller.scorerank,int(time_list[1][0].encode("utf-8")))
+            game_controller.setRank3Time(game_controller.scorerank,int(time_list[2][0].encode("utf-8")))
     gameScene.schedule(receiveServer)
     return connected
 
@@ -71,9 +75,10 @@ def request_notice():
     send_data['notice'] = 'request notice'
     netstream.send(sock, send_data)
 
-def post_score(score, username, gametype):
+def post_score(score, time, username, gametype):
     send_data = get_send_data()
     send_data['type'] = 'score'
+    send_data['time'] = time
     send_data['gametype'] = gametype
     send_data['username'] = username
     send_data['score'] = score
@@ -107,4 +112,12 @@ def request_score(gametype):
     send_data['type'] = 'request_score'
     send_data['gametype'] = gametype
     print "send request_score"
+    netstream.send(sock, send_data)
+
+def update_score(score, username, gametype):
+    send_data = get_send_data()
+    send_data['type'] = 'update_score'
+    send_data['gametype'] = gametype
+    send_data['username'] = username
+    send_data['score'] = score
     netstream.send(sock, send_data)

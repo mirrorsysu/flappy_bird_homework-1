@@ -48,7 +48,8 @@ while inputs:
 				if recvData == netstream.CLOSED or recvData == netstream.TIMEOUT:
 					if r.getpeername() not in disconnected_list:
 						print str(r.getpeername()) + 'disconnected'
-						disconnected_list.append(r.getpeername())
+						inputs.remove(r)
+						onlineUser.pop(r)
 				else:  # 根据收到的request发送response
 					#公告
 					if recvData['type'] == 'notice':
@@ -75,17 +76,25 @@ while inputs:
 						score = recvData['score']
 						username = recvData['username']
 						gametype = recvData['gametype']
-						save_score(score, username, gametype)
+						time = recvData['time']
+						save_score(score, time, username, gametype)
 						print 'receive score from user id:', number
 						sendData = {"response": username + ' ' + str(recvData['score'])}       #测试用
 						netstream.send(onlineUser[number]['connection'], sendData)  #测试用
 
+					if recvData['type'] == 'update_score':
+						number = recvData['sid']
+						score = recvData['score']
+						username = recvData['username']
+						gametype = recvData['gametype']
+						print '%s %s %s:' % (username, number, gametype)
+
 					if recvData['type'] == 'request_score':
 						number = recvData['sid']
 						gametype = recvData['gametype']
-						users, score = get_score(gametype)
+						users, score, time = get_score(gametype)
 						print 'receive request_score from user id:', number
-						sendData = {"users": users, "score":  score}       #测试用
+						sendData = {"users": users, "score":  score, "time": time}       #测试用
 						netstream.send(onlineUser[number]['connection'], sendData)  #测试用
 	except Exception:
 		traceback.print_exc()

@@ -30,6 +30,7 @@ def register(username, password):
 	return sendData
 
 # -*- coding: utf-8 -*-
+online_user = []
 def login(username, password):
 	ret = u"OCCUR ERROR IN LOGIN"
 	uname_list = []
@@ -53,35 +54,46 @@ def login(username, password):
 	sendData = {"response": ret}
 	return sendData
 
-def save_score(score, username, gametype):
+def save_score(score, time, username, gametype):
 	uname_list = []
 	score_list = []
+	time_list = []
 	try:
 		data = open(gametype + '_score.txt', 'r')
 		for i in data.read().splitlines():
 			uname_list.append(i.split('@')[0])
 			score_list.append(i.split('@')[1])
+			time_list.append(i.split('@')[2])
 		data.close()
 	except Exception, e:
 		uname_list = []
 		score_list = []
+		time_list = []
 	while len(uname_list) < 3:
 		uname_list.append(" ")
 	while len(score_list) < 3:
 		score_list.append("0")
+	while len(time_list) < 3:
+		time_list.append("0")
 	if score > int(score_list[0].encode("utf-8")):
-		score_list[2], score_list[1], score_list[0] = score_list[1], score_list[0], str(score)
-		uname_list[2], uname_list[1], uname_list[0] = uname_list[1], uname_list[0], username
+		if time > float(time_list[0].encode("utf-8")):
+			score_list[2], score_list[1], score_list[0] = score_list[1], score_list[0], str(score)
+			uname_list[2], uname_list[1], uname_list[0] = uname_list[1], uname_list[0], username
+			time_list[2], time_list[1], time_list[0] = time_list[1], time_list[0], str(time)
 	elif score > int(score_list[1].encode("utf-8")):
-		score_list[2], score_list[1] = score_list[1], str(score)
-		uname_list[2], uname_list[1] = uname_list[1], username
+		if time > float(time_list[1].encode("utf-8")):
+			score_list[2], score_list[1] = score_list[1], str(score)
+			uname_list[2], uname_list[1] = uname_list[1], username
+			time_list[2], time_list[1] = time_list[1], str(time)
 	elif score > int(score_list[2].encode("utf-8")):
-		score_list[2] = str(score)
-		uname_list[2] = username
+		if time > float(time_list[2].encode("utf-8")):
+			score_list[2] = str(score)
+			uname_list[2] = username
+			score_list[2] = str(time)
 	try:
 		data = open(gametype + '_score.txt', 'w+')
 		for i in range(0, 3):
-			data.write(uname_list[i] + "@" + str(score_list[i]) + '\n')
+			data.write(uname_list[i] + "@" + str(score_list[i]) + "@" + str(time_list[i]) + '\n')
 		data.close()
 	except Exception, e:
 		print("score.txt写入错误")
@@ -89,18 +101,23 @@ def save_score(score, username, gametype):
 def get_score(gametype):
 	uname_list = []
 	score_list = []
-	#
-	# try:
-	data = open(gametype + '_score.txt', 'r')
-	for i in data.read().splitlines():
-		uname_list.append(i.split('@')[0])
-		score_list.append(i.split('@')[1])
-	data.close()
-	# except Exception, e:
-	# 	uname_list = []
-	# 	score_list = []
+	time_list = []
+
+	try:
+		data = open(gametype + '_score.txt', 'r')
+		for i in data.read().splitlines():
+			uname_list.append(i.split('@')[0])
+			score_list.append(i.split('@')[1])
+			time_list.append(i.split('@')[2])
+		data.close()
+	except Exception, e:
+		uname_list = []
+		score_list = []
+		time_list = []
 	while len(uname_list) < 3:
 		uname_list.append(" ")
 	while len(score_list) < 3:
 		score_list.append("0")
-	return uname_list, score_list
+	while len(time_list) < 3:
+		time_list.append("0")
+	return uname_list, score_list, time_list

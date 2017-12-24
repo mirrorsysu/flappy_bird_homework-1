@@ -14,7 +14,7 @@ from pipe import *
 from collision import *
 from network import *
 import common
-
+import time
 #vars
 gameLayer = None
 gameScene = None
@@ -35,8 +35,13 @@ isOnline = 0
 Rank1Scores = {}
 Rank2Scores = {}
 Rank3Scores = {}
+Rank1Time = {}
+Rank2Time = {}
+Rank3Time = {}
 pattern = -1
 scorerank = None
+starttime = 0
+endtime = 0
 def initGameLayer():
     global spriteBird, gameLayer, land_1, land_2
     # 创建场景
@@ -110,6 +115,11 @@ def removeLayer(name):
 # single game start button的回调函数
 def singleGameReady(level = "easy",gtype = 'normal'):
     global spriteBird
+    global pattern, starttime, endtime
+    if gtype == 'normal':
+        pattern = 0
+    else:
+        pattern = 1
     removeContent()
     removeLayer("titleLayer")
     gameLayer.add(spriteBird, z=10)
@@ -119,7 +129,7 @@ def singleGameReady(level = "easy",gtype = 'normal'):
     tutorial = createAtlasSprite("tutorial")
     tutorial.position = (common.visibleSize["width"]/2, common.visibleSize["height"]/2)
     spriteBird.position = (common.visibleSize["width"]/3, spriteBird.position[1])
-
+    starttime = time.time()
     #handling touch events
     class ReadyTouchHandler(cocos.layer.Layer):
         is_event_handler = True     #: enable director.window events
@@ -168,11 +178,8 @@ def singleGameReady(level = "easy",gtype = 'normal'):
     readyLayer.add(tutorial)
     gameScene.add(readyLayer, z=10)
 def backToMainMenu(gtype='normal'):
-    global pattern
-    if gtype == 'normal':
-        pattern = 0
-    else:
-        pattern = 1
+    global  endtime
+    endtime = time.time()
     restart_button = RestartMenu()
     gameLayer.add(restart_button, z=50, name="restart_button")
 def showNotice():
@@ -193,8 +200,8 @@ def removeContent():
         pass
 
 class RestartMenu(Layer):
-    global pattern
-    def __init__(self):  
+    global pattern, starttime, endtime
+    def __init__(self):
         super(RestartMenu, self).__init__()
         items = [
                 (ImageMenuItem(common.load_image("button_restart.png"), self.begin_game)),
@@ -207,40 +214,53 @@ class RestartMenu(Layer):
         menu.create_menu(items, selected_effect=shake(), unselected_effect=shake_back())
         setMenuItemPos(menu, positions)
         self.add(menu, z=52)
+        alivetime = int(endtime - starttime)
 
         #保存分数
         import pipe
         now_score = pipe.g_score
+        alivetime = endtime - starttime
         level = pipe.g_level
+
+        score_list = []
+        time_list = []
         try:
-            if pattern == 0:
-                data = open(level + '_score.txt', 'r')
-            else:
-                data = open('reverse.txt', 'r')
-            f = data.read().splitlines()
-            data.close()
+            if pattern != 0:
+                 level = 'reverse'
+            data = open(level + '_score.txt', 'r')
+            for i in data.read().splitlines():
+                score_list.append(i.split('@')[0])
+                time_list.append(i.split('@')[1])
+                data.close()
         except Exception, e:
-            data = None
-            f = []
-        while len(f) < 3:
-            f.append("0")
+            score_list = []
+            time_list = []
+        while len(score_list) < 3:
+            score_list.append("0")
+        while len(time_list) < 3:
+            time_list.append("0")
         panel_name = "score_panel_4"
-        if now_score >= int(f[0].encode("utf-8")):
-            f[2], f[1], f[0] = f[1], f[0], str(now_score)
-            panel_name = "score_panel_1"
-        elif now_score >= int(f[1].encode("utf-8")):
-            f[2], f[1] = f[1], str(now_score)
-            panel_name = "score_panel_2"
-        elif now_score >= int(f[2].encode("utf-8")):
-            f[2] = str(now_score)
-            panel_name = "score_panel_3"
+        if now_score >= int(score_list[0].encode("utf-8")):
+            if alivetime > float(time_list[0].encode("utf-8")):
+                score_list[2], score_list[1], score_list[0] = score_list[1], score_list[0], str(now_score)
+                time_list[2], time_list[1], time_list[0] = time_list[1], time_list[0], str(alivetime)
+                panel_name = "score_panel_1"
+        elif now_score >= int(score_list[1].encode("utf-8")):
+            if alivetime > float(time_list[1].encode("utf-8")):
+                score_list[2], score_list[1] = score_list[1], str(now_score)
+                time_list[2], time_list[1] = time_list[1], str(alivetime)
+                panel_name = "score_panel_2"
+        elif now_score >= int(score_list[2].encode("utf-8")):
+            if alivetime > float(time_list[2].encode("utf-8")):
+                score_list[2] = str(now_score)
+                time_list[2] = str(alivetime)
+                panel_name = "score_panel_3"
         try:
-            if pattern == 0:
-                data = open(level + '_score.txt', 'w+')
-            else:
-                data = open('reverse.txt', 'w+')
-            for i in f:
-                data.write(str(i) + '\n')
+            if pattern != 0:
+                 level = 'reverse'
+            data = open(level + '_score.txt', 'w+')
+            for i in range(0, 3):
+                data.write(score_list[i] + "@" + time_list[i] + '\n')
             data.close()
         except Exception, e:
             print("score.txt写入错误")
@@ -251,9 +271,9 @@ class RestartMenu(Layer):
             if pattern == 0:
                 gametype = level
             else: gametype = 'reverse'
-            post_score(now_score, g_username, gametype)
+            post_score(now_score, alivetime, g_username, gametype)
         setPanelScores(now_score)
-        setBestScores(int(f[0].encode("utf-8")))
+        setBestScores(int(score_list[0].encode("utf-8")))
 
         gameoverLogo = createAtlasSprite("text_game_over")
         gameoverLogo.position = (common.visibleSize["width"] / 2, common.visibleSize["height"] * 4 / 5)
@@ -295,21 +315,26 @@ class RestartMenu(Layer):
             else: gametype = 'reverse'
             request_score(gametype)
         else:           #离线
+            score_list = []
+            time_list = []
             try:
-                if pattern == 0:
-                    data = open(level + '_score.txt', 'r')
-                else:
-                    data = open('reverse.txt', 'r')
-                f = data.read().splitlines()
-                data.close()
+                if pattern != 0:
+                    level = 'reverse'
+                data = open(level + '_score.txt', 'r')
+                for i in data.read().splitlines():
+                    score_list.append(i.split('@')[0])
+                    time_list.append(i.split('@')[1])
+                    data.close()
             except Exception, e:
-                data = None
-                f = []
-            while len(f) < 3:
-                f.append('0')
-            setRank1Scores(scorerank,int(f[0].encode("utf-8")))
-            setRank2Scores(scorerank,int(f[1].encode("utf-8")))
-            setRank3Scores(scorerank,int(f[2].encode("utf-8")))
+                score_list = []
+            while len(score_list) < 3:
+                score_list.append('0')
+            setRank1Scores(scorerank,int(score_list[0].encode("utf-8")))
+            setRank2Scores(scorerank,int(score_list[1].encode("utf-8")))
+            setRank3Scores(scorerank,int(score_list[2].encode("utf-8")))
+            setRank1Time(scorerank,int(time_list[0][0].encode("utf-8")))
+            setRank2Time(scorerank,int(time_list[1][0].encode("utf-8")))
+            setRank3Time(scorerank,int(time_list[2][0].encode("utf-8")))
         gameLayer.add(scorerank,z = 60,name = "scorerank")
 
 def goback():
@@ -416,6 +441,7 @@ class InputBox(Menu):
         self.pos_y = position[1]
         self.menu_valign = CENTER
         self.menu_halign = CENTER
+        self.len = 6
         items = [
             (ImageMenuItem(common.load_image("inputbox.png"), None))
         ]
@@ -443,7 +469,7 @@ class InputBox(Menu):
         if self.is_selected == 1:
             if symbol == key.BACKSPACE:
                 self.str = self.str[0:-1]
-            if len(self.str) == 8:
+            if len(self.str) == self.len:
                 pass
             elif key.A <= symbol <= key.Z:
                 self.str += chr(symbol - key.A + 65)
@@ -490,7 +516,7 @@ def setRank3Scores(scorerank,score):
     i = 0
     for d in scoreStr:
         s = createAtlasSprite("number_score_0"+d)
-        s.position = common.visibleSize["width"] *39/50 + 36 - 18 * len(scoreStr) + 18*i, common.visibleSize["height"]* 30/66
+        s.position = common.visibleSize["width"] *79/100 + 36 - 18 * len(scoreStr) + 18*i, common.visibleSize["height"]* 30/66
         scorerank.add(s, z=62)
         Rank3Scores[i] = s
         i = i + 1
@@ -507,7 +533,7 @@ def setRank2Scores(scorerank,score):
     i = 0
     for d in scoreStr:
         s = createAtlasSprite("number_score_0"+d)
-        s.position = common.visibleSize["width"] *39/50 + 36 - 18 * len(scoreStr) + 18*i, common.visibleSize["height"]* 40/66
+        s.position = common.visibleSize["width"] *79/100 + 36 - 18 * len(scoreStr) + 18*i, common.visibleSize["height"]* 39/66
         scorerank.add(s, z=62)
         Rank2Scores[i] = s
         i = i + 1
@@ -524,46 +550,99 @@ def setRank1Scores(scorerank,score):
     i = 0
     for d in scoreStr:
         s = createAtlasSprite("number_score_0"+d)
-        s.position = common.visibleSize["width"] *39/50 + 36 - 18 * len(scoreStr) + 18*i, common.visibleSize["height"]* 50/66
+        s.position = common.visibleSize["width"] *79/100 + 36 - 18 * len(scoreStr) + 18*i, common.visibleSize["height"]* 49/66
         scorerank.add(s, z=62)
         Rank1Scores[i] = s
         i = i + 1
 
+def setRank1Time(scorerank,score):
+    global Rank1Time
+    for k in Rank1Time:
+        try:
+            scorerank.remove(Rank1Time[k])
+            Rank1Time[k] = None
+        except:
+            pass
+
+    scoreStr = str(score)
+    i = 0
+    for d in scoreStr:
+        s = createAtlasSprite("number_score_0"+d)
+        s.position = common.visibleSize["width"] *43/100 + 36 - 18 * len(scoreStr) + 18*i, common.visibleSize["height"]* 49/66
+        scorerank.add(s, z=62)
+        Rank1Time[i] = s
+        i = i + 1
+
+def setRank2Time(scorerank,score):
+    global Rank2Time
+    for k in Rank2Time:
+        try:
+            scorerank.remove(Rank2Time[k])
+            Rank2Time[k] = None
+        except:
+            pass
+
+    scoreStr = str(score)
+    i = 0
+    for d in scoreStr:
+        s = createAtlasSprite("number_score_0"+d)
+        s.position = common.visibleSize["width"] *43/100 + 36 - 18 * len(scoreStr) + 18*i, common.visibleSize["height"]* 39/66
+        scorerank.add(s, z=62)
+        Rank2Time[i] = s
+        i = i + 1
+
+def setRank3Time(scorerank,score):
+    global Rank3Time
+    for k in Rank3Time:
+        try:
+            scorerank.remove(Rank3Time[k])
+            Rank3Time[k] = None
+        except:
+            pass
+
+    scoreStr = str(score)
+    i = 0
+    for d in scoreStr:
+        s = createAtlasSprite("number_score_0"+d)
+        s.position = common.visibleSize["width"] *43/100 + 36 - 18 * len(scoreStr) + 18*i, common.visibleSize["height"]* 30/66
+        scorerank.add(s, z=62)
+        Rank3Time[i] = s
+        i = i + 1
 def setRank1Name(name):
     global scorerank
     removeLayer("name1")
     label = Label(name,
                   font_name='MarkerFelt-Thin',
-                  font_size=15,
+                  font_size=12,
                   color=(0, 0, 0, 255),
                   width=common.visibleSize["width"] / 2,
                   multiline=True,
                   anchor_x='center', anchor_y='center')
-    label.position = (common.visibleSize["width"] *31/50, common.visibleSize["height"]* 50/66)
+    label.position = (common.visibleSize["width"] *15/50, common.visibleSize["height"]* 49/66)
     scorerank.add(label, z=70, name="name1")
 def setRank2Name(name):
     global scorerank
     removeLayer("name2")
     label = Label(name,
                   font_name='MarkerFelt-Thin',
-                  font_size=15,
+                  font_size=12,
                   color=(0, 0, 0, 255),
                   width=common.visibleSize["width"] / 2,
                   multiline=True,
                   anchor_x='center', anchor_y='center')
-    label.position = (common.visibleSize["width"] *31/50, common.visibleSize["height"]* 40/66)
+    label.position = (common.visibleSize["width"] *15/50, common.visibleSize["height"]* 39/66)
     scorerank.add(label, z=70, name="name2")
 def setRank3Name(name):
     global scorerank
     removeLayer("name3")
     label = Label(name,
                   font_name='MarkerFelt-Thin',
-                  font_size=15,
+                  font_size=12,
                   color=(0, 0, 0, 255),
                   width=common.visibleSize["width"] / 2,
                   multiline=True,
                   anchor_x='center', anchor_y='center')
-    label.position = (common.visibleSize["width"] *31/50, common.visibleSize["height"]* 30/66)
+    label.position = (common.visibleSize["width"] *15/50, common.visibleSize["height"]* 30/66)
     scorerank.add(label, z=70, name="name3")
 def setMenuItemPos(menu, positions):
     width, height = director.get_window_size()
