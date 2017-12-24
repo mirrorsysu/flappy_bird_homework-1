@@ -81,7 +81,7 @@ def game_start(_gameScene):
     ini_button = StartMenu()
     gameLayer.add(ini_button, z=20, name="init_button")
     connect(gameScene)
-
+#登录成功
 def login_success():
     global isOnline
     isOnline = 1
@@ -93,7 +93,6 @@ def login_success():
     initGameLayer()
     start_botton = SingleGameStartMenu()
     gameLayer.add(start_botton, z=20, name="start_button")
-
 def createLabel(value, x, y):
     label=Label(value,
         font_name='Times New Roman',
@@ -104,14 +103,12 @@ def createLabel(value, x, y):
         anchor_x='center',anchor_y='center')
     label.position = (x, y)
     return label
-
 def removeLayer(name):
     try:
         gameLayer.remove(name)
     except Exception, e:
         print "remove error with " + name
         pass
-
 # single game start button的回调函数
 def singleGameReady(level = "easy",gtype = 'normal'):
     global spriteBird
@@ -198,23 +195,25 @@ def removeContent():
         gameLayer.remove("content")
     except Exception, e:
         pass
-
+def goback():
+    removeLayer("scorerank")
+#游戏结束菜单
 class RestartMenu(Layer):
     global pattern, starttime, endtime
     def __init__(self):
         super(RestartMenu, self).__init__()
         items = [
-                (ImageMenuItem(common.load_image("button_restart.png"), self.begin_game)),
-                (ImageMenuItem(common.load_image("button_score.png"), self.showscore))
-                ]
+                (ImageMenuItem(common.load_image("button_restart.png"), self.begin_game)),  #返回主菜单
+                (ImageMenuItem(common.load_image("button_score.png"), self.showscore))      #显示排行榜
+                ]   
         menu = Menu()
         menu.menu_valign = BOTTOM
         menu.menu_halign = LEFT
         positions = [(common.visibleSize["width"] / 6, common.visibleSize["height"] / 3), (common.visibleSize["width"] * 3 / 5, common.visibleSize["height"] / 3)]
-        menu.create_menu(items, selected_effect=shake(), unselected_effect=shake_back())
+        menu.create_menu(items, selected_effect=shake(), unselected_effect=shake_back())    #修改按钮位置
         setMenuItemPos(menu, positions)
         self.add(menu, z=52)
-        alivetime = int(endtime - starttime)
+        alivetime = int(endtime - starttime)    #记录存活时间
 
         #保存分数
         import pipe
@@ -224,22 +223,26 @@ class RestartMenu(Layer):
 
         score_list = []
         time_list = []
+        #打开文件
         try:
+            #判断是否为地狱模式
             if pattern != 0:
                  level = 'reverse'
             data = open(level + '_score.txt', 'r')
-            for i in data.read().splitlines():
+            for i in data.read().splitlines():    #分割数据  
                 score_list.append(i.split('@')[0])
                 time_list.append(i.split('@')[1])
                 data.close()
         except Exception, e:
             score_list = []
             time_list = []
+        #格式化数据
         while len(score_list) < 3:
             score_list.append("0")
         while len(time_list) < 3:
             time_list.append("0")
         panel_name = "score_panel_4"
+        #判断排名，并更新排序
         if now_score >= int(score_list[0].encode("utf-8")):
             if alivetime > float(time_list[0].encode("utf-8")):
                 score_list[2], score_list[1], score_list[0] = score_list[1], score_list[0], str(now_score)
@@ -255,6 +258,7 @@ class RestartMenu(Layer):
                 score_list[2] = str(now_score)
                 time_list[2] = str(alivetime)
                 panel_name = "score_panel_3"
+        #写入文件
         try:
             if pattern != 0:
                  level = 'reverse'
@@ -272,10 +276,10 @@ class RestartMenu(Layer):
                 gametype = level
             else: gametype = 'reverse'
             post_score(now_score, alivetime, g_username, gametype)
-        setPanelScores(now_score)
-        setBestScores(int(score_list[0].encode("utf-8")))
-
-        gameoverLogo = createAtlasSprite("text_game_over")
+        setPanelScores(now_score)                           #放置奖牌
+        setBestScores(int(score_list[0].encode("utf-8")))   #放置最高分
+        #放置gameover以及分数板
+        gameoverLogo = createAtlasSprite("text_game_over") 
         gameoverLogo.position = (common.visibleSize["width"] / 2, common.visibleSize["height"] * 4 / 5)
         self.add(gameoverLogo, z=50)
         _scoreLayer = Layer()
@@ -329,6 +333,7 @@ class RestartMenu(Layer):
                 score_list = []
             while len(score_list) < 3:
                 score_list.append('0')
+            #放置分数和时间
             setRank1Scores(scorerank,int(score_list[0].encode("utf-8")))
             setRank2Scores(scorerank,int(score_list[1].encode("utf-8")))
             setRank3Scores(scorerank,int(score_list[2].encode("utf-8")))
@@ -336,9 +341,7 @@ class RestartMenu(Layer):
             setRank2Time(scorerank,int(time_list[1][0].encode("utf-8")))
             setRank3Time(scorerank,int(time_list[2][0].encode("utf-8")))
         gameLayer.add(scorerank,z = 60,name = "scorerank")
-
-def goback():
-	removeLayer("scorerank")
+#主菜单
 class SingleGameStartMenu(Layer):
     def __init__(self):
         global isOnline
@@ -347,10 +350,10 @@ class SingleGameStartMenu(Layer):
         self.menu_halign = CENTER
         menu = Menu()
         items = [
-                (ImageMenuItem(common.load_image("seeme.png"), self.select_diff)),
-                (ImageMenuItem(common.load_image("reverse.png"),self.enter)),
-                (ImageMenuItem(common.load_image("exit.png"), self.exit)),
-                (ImageMenuItem(common.load_image("back.png"), self.back)),
+                (ImageMenuItem(common.load_image("seeme.png"), self.select_diff)),  #选择难度
+                (ImageMenuItem(common.load_image("reverse.png"),self.enter)),       #地狱模式
+                (ImageMenuItem(common.load_image("exit.png"), self.exit)),          #退出游戏
+                (ImageMenuItem(common.load_image("back.png"), self.back)),          #返回按钮
                 ]
         if isOnline == 1:
             print("111")
@@ -373,14 +376,15 @@ class SingleGameStartMenu(Layer):
 
     def exit(self):
         exit()
+#开始菜单
 class StartMenu(Menu):
     def __init__(self):
         super(StartMenu, self).__init__()
         self.menu_valign = CENTER
         self.menu_halign = CENTER
         items = [
-                (ImageMenuItem(common.load_image("button_start.png"), self.begin_game)),
-                (ImageMenuItem(common.load_image("Login.png"), self.login_menu))
+                (ImageMenuItem(common.load_image("button_start.png"), self.begin_game)),    #单机入口
+                (ImageMenuItem(common.load_image("Login.png"), self.login_menu))            #登陆入口
                 ]
         self.create_menu(items,selected_effect=zoom_in(),unselected_effect=zoom_out())
 
@@ -392,18 +396,19 @@ class StartMenu(Menu):
         removeLayer("init_button")
         login_botton = loginMenu()
         gameLayer.add(login_botton, name="login_button")
-
+#登陆菜单
 class loginMenu(Layer):
     def __init__(self):
-        super(loginMenu, self).__init__()
+        super(loginMenu, self).__init__()  
+        #用户名以及密码输入框
         position = [common.visibleSize["width"] / 2 + 5, common.visibleSize["height"] * 3 / 5]
         self.uname_input = InputBox("username", position)
         position = [common.visibleSize["width"] / 2 + 5, common.visibleSize["height"] * 31 / 60]
-        self. pwd_input = InputBox("password", position, type="*")
+        self.pwd_input = InputBox("password", position, type="*")
         menu = Menu()
         items = [
-            (ImageMenuItem(common.load_image("Login.png"), self.login)),
-            (ImageMenuItem(common.load_image("register.png"), self.register))
+            (ImageMenuItem(common.load_image("Login.png"), self.login)),        #登陆
+            (ImageMenuItem(common.load_image("register.png"), self.register))   #注册
         ]
         menu.create_menu(items, selected_effect=shake(), unselected_effect=shake_back())
         positions = [(common.visibleSize["width"] / 3, common.visibleSize["height"] * 2/ 5), (common.visibleSize["width"] * 3 / 5, common.visibleSize["height"] * 2/ 5)]
@@ -433,7 +438,29 @@ class loginMenu(Layer):
             showContent(content)
         else:
             request_register(username, password)  # request_notice is from network.py
+#难度选择菜单
+class DiffDegreeMenu(Menu):
+    def __init__(self):
+        super(DiffDegreeMenu, self).__init__()
+        self.menu_valign = CENTER
+        self.menu_halign = CENTER
+        items = [
+                (ImageMenuItem(common.load_image("easy.png"), self.easy_degree)),
+                (ImageMenuItem(common.load_image("mid.png"), self.mid_degree)),
+                (ImageMenuItem(common.load_image("hard.png"), self.hard_degree))
+                ]
+        self.create_menu(items,selected_effect=zoom_in(),unselected_effect=zoom_out())
 
+    def easy_degree(self):
+        removeLayer("diff_button")
+        singleGameReady("easy",'normal') 
+    def mid_degree(self):
+        removeLayer("diff_button")
+        singleGameReady("mid",'normal')
+    def hard_degree(self):
+        removeLayer("diff_button")
+        singleGameReady("hard",'normal')
+#输入框实现
 class InputBox(Menu):
     def __init__(self, name, position = [common.visibleSize["width"] / 2 + 5, common.visibleSize["height"] * 9 / 10], type=""):
         super(InputBox, self).__init__()
@@ -443,7 +470,7 @@ class InputBox(Menu):
         self.menu_halign = CENTER
         self.len = 6
         items = [
-            (ImageMenuItem(common.load_image("inputbox.png"), None))
+            (ImageMenuItem(common.load_image("inputbox.png"), None))    #输入框背景图
         ]
         self.create_menu(items)
         width, height = director.get_window_size()
@@ -459,12 +486,14 @@ class InputBox(Menu):
         self.type = type
     def on_mouse_release(self, x, y, buttons, modifiers):
         (x, y) = director.get_virtual_coordinates(x, y)
-        if self.children[self.selected_index][1].is_inside_box(x, y):
+        if self.children[self.selected_index][1].is_inside_box(x, y):   
+            #鼠标点击选中输入框 然后才可以输入
             self._activate_item()
             self.is_selected = 1
         else:
             self.is_selected = 0
     def on_key_press(self, symbol, modifiers):
+        #输入
         from pyglet.window import key
         if self.is_selected == 1:
             if symbol == key.BACKSPACE:
@@ -482,6 +511,7 @@ class InputBox(Menu):
 
             self.showInput(self.str)
     def text(self):
+        #返回内容
         return self.str
     def showInput(self, content):
         removeLayer(self.name)
@@ -554,7 +584,6 @@ def setRank1Scores(scorerank,score):
         scorerank.add(s, z=62)
         Rank1Scores[i] = s
         i = i + 1
-
 def setRank1Time(scorerank,score):
     global Rank1Time
     for k in Rank1Time:
@@ -572,7 +601,6 @@ def setRank1Time(scorerank,score):
         scorerank.add(s, z=62)
         Rank1Time[i] = s
         i = i + 1
-
 def setRank2Time(scorerank,score):
     global Rank2Time
     for k in Rank2Time:
@@ -590,7 +618,6 @@ def setRank2Time(scorerank,score):
         scorerank.add(s, z=62)
         Rank2Time[i] = s
         i = i + 1
-
 def setRank3Time(scorerank,score):
     global Rank3Time
     for k in Rank3Time:
@@ -644,6 +671,7 @@ def setRank3Name(name):
                   anchor_x='center', anchor_y='center')
     label.position = (common.visibleSize["width"] *15/50, common.visibleSize["height"]* 30/66)
     scorerank.add(label, z=70, name="name3")
+
 def setMenuItemPos(menu, positions):
     width, height = director.get_window_size()
     for idx, i in enumerate(menu.children):
@@ -653,25 +681,3 @@ def setMenuItemPos(menu, positions):
         item.transform_anchor = (pos_x, pos_y)
         item.generateWidgets(pos_x, pos_y, menu.font_item,
                              menu.font_item_selected)
-class DiffDegreeMenu(Menu):
-    def __init__(self):
-        super(DiffDegreeMenu, self).__init__()
-        self.menu_valign = CENTER
-        self.menu_halign = CENTER
-        items = [
-                (ImageMenuItem(common.load_image("easy.png"), self.easy_degree)),
-                (ImageMenuItem(common.load_image("mid.png"), self.mid_degree)),
-                (ImageMenuItem(common.load_image("hard.png"), self.hard_degree))
-                ]
-        self.create_menu(items,selected_effect=zoom_in(),unselected_effect=zoom_out())
-
-    def easy_degree(self):
-        removeLayer("diff_button")
-        singleGameReady("easy",'normal') 
-    def mid_degree(self):
-        removeLayer("diff_button")
-        singleGameReady("mid",'normal')
-    def hard_degree(self):
-        removeLayer("diff_button")
-        singleGameReady("hard",'normal')
-

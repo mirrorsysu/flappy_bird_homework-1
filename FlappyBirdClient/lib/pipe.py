@@ -89,6 +89,7 @@ def createPipes(layer, gameScene, spriteBird, score, level = "easy"):
                 g_score = g_score + 1
                 import game_controller, time
                 time = time.time() - game_controller.starttime
+                #客户端实时存储
                 data = open('current.txt', 'w+')
                 data.write(str(g_score) + "@" + str(time))
                 data.close()

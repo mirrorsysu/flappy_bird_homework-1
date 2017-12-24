@@ -79,8 +79,6 @@ while inputs:
 						time = recvData['time']
 						save_score(score, time, username, gametype)
 						print 'receive score from user id:', number
-						sendData = {"response": username + ' ' + str(recvData['score'])}       #测试用
-						netstream.send(onlineUser[number]['connection'], sendData)  #测试用
 
 					if recvData['type'] == 'update_score':
 						number = recvData['sid']
@@ -94,8 +92,8 @@ while inputs:
 						gametype = recvData['gametype']
 						users, score, time = get_score(gametype)
 						print 'receive request_score from user id:', number
-						sendData = {"users": users, "score":  score, "time": time}       #测试用
-						netstream.send(onlineUser[number]['connection'], sendData)  #测试用
+						sendData = {"users": users, "score":  score, "time": time}
+						netstream.send(onlineUser[number]['connection'], sendData)
 	except Exception:
 		traceback.print_exc()
 		print 'Error: socket 链接异常'

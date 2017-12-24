@@ -3,6 +3,7 @@ def register(username, password):
 	ret = u"OCCUR ERROR IN REGISTER"
 	uname_list = []
 	pwd_list = []
+	#打开user_list.txt
 	try:
 		f = open('user_list.txt', 'r')
 		for i in f.read().splitlines():
@@ -25,7 +26,7 @@ def register(username, password):
 			ret = u"注册成功"
 		except Exception, e:
 			print(u"user_list.txt写入错误")
-
+	#返回信息
 	sendData = {"response": ret}
 	return sendData
 
